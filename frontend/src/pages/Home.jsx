@@ -3,6 +3,10 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// 👇 THIS is the only place you change when moving between local / prod
+const BACKEND_BASE =
+  process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+
 export default function Home() {
   const [orderId, setOrderId] = useState(null);
   const [paymentUrl, setPaymentUrl] = useState(null);
@@ -14,7 +18,9 @@ export default function Home() {
   useEffect(() => {
     async function createOrder() {
       try {
-        const res = await axios.get("http://localhost:8000/phonepe/create-order?amount=2");
+        const res = await axios.get(
+          `${BACKEND_BASE}/phonepe/create-order?amount=2`
+        );
         setOrderId(res.data.orderId);
         setPaymentUrl(res.data.payment_url);
         setStatus("pending");
@@ -31,9 +37,12 @@ export default function Home() {
 
     const interval = setInterval(async () => {
       try {
-        const res = await axios.get("http://localhost:8000/phonepe/payment-status", {
-          params: { orderId }
-        });
+        const res = await axios.get(
+          `${BACKEND_BASE}/phonepe/payment-status`,
+          {
+            params: { orderId },
+          }
+        );
 
         if (res.data.status === "SUCCESS") {
           setStatus("success");
@@ -59,9 +68,11 @@ export default function Home() {
   // STEP 4 — Start Interview only after payment success
   const startInterview = async () => {
     try {
-      const r = await axios.post("http://localhost:8000/start-interview", null, {
-        params: { orderId },
-      });
+      const r = await axios.post(
+        `${BACKEND_BASE}/start-interview`,
+        null,
+        { params: { orderId } }
+      );
 
       if (r.data && r.data.response) {
         navigate("/interview");
@@ -102,14 +113,18 @@ export default function Home() {
               Pay ₹2 using PhonePe
             </button>
 
-            <p style={{ marginTop: 12 }}>Once paid, this page will unlock automatically.</p>
+            <p style={{ marginTop: 12 }}>
+              Once paid, this page will unlock automatically.
+            </p>
           </>
         )}
 
         {/* Payment Success */}
         {status === "success" && (
           <>
-            <p style={{ color: "green" }}>Payment received via PhonePe ✔</p>
+            <p style={{ color: "green" }}>
+              Payment received via PhonePe ✔
+            </p>
 
             <button
               onClick={startInterview}
@@ -130,7 +145,9 @@ export default function Home() {
 
         {/* Payment Failed */}
         {status === "failed" && (
-          <p style={{ color: "red" }}>PhonePe payment failed. Please refresh and try again.</p>
+          <p style={{ color: "red" }}>
+            PhonePe payment failed. Please refresh and try again.
+          </p>
         )}
       </div>
     </div>

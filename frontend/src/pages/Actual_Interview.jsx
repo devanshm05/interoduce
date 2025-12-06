@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AvatarAI from '../components/AvatarAI';
 import mic from '../images/mic.jpg';
-import { useEffect } from 'react';
+
+// 👇 Use env-based backend URL
+const BACKEND_BASE =
+  process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
 export default function Actual_Interview() {
   const [question, setQuestion] = useState("");
@@ -13,7 +16,7 @@ export default function Actual_Interview() {
   const [isListening, setIsListening] = useState(false);
   const [recognitionRef, setRecognitionRef] = useState(null);
   const [interviewStarted , setInterviewStarted] = useState(false);
-  const[interviewCompleted , setInterviewCompleted] = useState(false);
+  const [interviewCompleted , setInterviewCompleted] = useState(false);
 
   const navigate = useNavigate();
 
@@ -22,13 +25,16 @@ export default function Actual_Interview() {
   
     try {
       // 🔹 Call backend summarization route
-      const res = await fetch("http://127.0.0.1:8000/summarize-interview", {
+      const res = await fetch(`${BACKEND_BASE}/summarize-interview`, {
         method: "POST",
       });
       const data = await res.json();
   
       // 🔹 Save summary in sessionStorage for Thanks page
-      sessionStorage.setItem("interviewSummary", data.summary || "No summary available.");
+      sessionStorage.setItem(
+        "interviewSummary",
+        data.summary || "No summary available."
+      );
   
       // 🔹 Thank-you speech
       const message = "Thank you for your time! We will get back to you soon.";
@@ -39,105 +45,94 @@ export default function Actual_Interview() {
       }, 4000);
     } catch (error) {
       console.error("Error generating summary:", error);
-      sessionStorage.setItem("interviewSummary", "Error generating summary. Please try again.");
+      sessionStorage.setItem(
+        "interviewSummary",
+        "Error generating summary. Please try again."
+      );
       navigate("/thanks");
     }
   };
   
 
   const handleInterviewToggle = () =>{
-    
-    if(interviewStarted){
+    if (interviewStarted) {
       Thanks();
       setInterviewStarted(false);
       setInterviewCompleted(true);
-      
-      
-    }
-    else{
+    } else {
       setInterviewStarted(true);
       setInterviewCompleted(false);
       handleStart();
-      
-    }
-  }
-
-const speakAndType = (text) => {
-  if (!synth) return;
-
-  // 1. Speak the full text
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-US";
-  utterance.rate = 0.9;
-  utterance.pitch = 1;
-  utterance.volume = 1;
-
-  const voices = synth.getVoices();
-  const preferredVoice = voices.find(voice =>
-    voice.name.includes('Google') || voice.lang.includes('en')
-  );
-  if (preferredVoice) {
-    utterance.voice = preferredVoice;
-  }
-
-  synth.speak(utterance);
-
-  // 2. Typing animation logic
-  let index = 0;
-  setQuestion(""); // Clear existing text
-
-  const interval = setInterval(() => {
-    if (index < text.length) {
-      setQuestion(prev => prev + text[index]);
-      index++;
-    } else {
-      clearInterval(interval);
-    }
-  }, 45); // Adjust speed (lower = faster)
-};
-
-
-
-const startListening = () => {
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.continuous = true; // keep listening even on pauses
-  recognition.lang = "en-US";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.onresult = (event) => {
-    const transcript = event.results[event.results.length - 1][0].transcript;
-    setAnswer(prev => prev + transcript + " "); // append new words
-  };
-
-  recognition.onerror = (event) => {
-    console.error("Speech recognition error:", event.error);
-    alert("Speech recognition error: " + event.error);
-  };
-
-  recognition.onend = () => {
-    if (isListening) {
-      console.log("🎤 Restarting listening due to pause...");
-      recognition.start(); // restart if mic is still "on"
-    } else {
-      console.log("🎤 Listening stopped intentionally.");
     }
   };
 
-  recognition.start();
-  setRecognitionRef(recognition);
-  setIsListening(true);
-};
+  const speakAndType = (text) => {
+    if (!synth) return;
 
-  
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
 
-  // Initialize speech synthesis
+    const voices = synth.getVoices();
+    const preferredVoice = voices.find(voice =>
+      voice.name.includes('Google') || voice.lang.includes('en')
+    );
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    synth.speak(utterance);
+
+    let index = 0;
+    setQuestion("");
+
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        setQuestion(prev => prev + text[index]);
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 45);
+  };
+
+  const startListening = () => {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = true;
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[event.results.length - 1][0].transcript;
+      setAnswer(prev => prev + transcript + " ");
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      alert("Speech recognition error: " + event.error);
+    };
+
+    recognition.onend = () => {
+      if (isListening) {
+        console.log("🎤 Restarting listening due to pause...");
+        recognition.start();
+      } else {
+        console.log("🎤 Listening stopped intentionally.");
+      }
+    };
+
+    recognition.start();
+    setRecognitionRef(recognition);
+    setIsListening(true);
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       const speechSynthesis = window.speechSynthesis;
       setSynth(speechSynthesis);
-      
-      // Cleanup function
       return () => {
         speechSynthesis.cancel();
       };
@@ -159,19 +154,12 @@ const startListening = () => {
       stopListeningAndSubmit();
     }
   };
-  
-  
 
-  // Speak when question changes
   useEffect(() => {
     if (question && synth) {
-      // Cancel any ongoing speech
       synth.cancel();
-      
-      // Create a new utterance
       const newUtterance = new SpeechSynthesisUtterance(question);
-      
-      // Configure voice options
+
       const voices = synth.getVoices();
       const preferredVoice = voices.find(voice => 
         voice.name.includes('Google') || voice.name.includes('English')
@@ -180,15 +168,14 @@ const startListening = () => {
         newUtterance.voice = preferredVoice;
       }
       
-      newUtterance.rate = 0.9; // Slightly slower than normal
-      newUtterance.pitch = 1; // Normal pitch
-      newUtterance.volume = 1; // Full volume
+      newUtterance.rate = 0.9;
+      newUtterance.pitch = 1;
+      newUtterance.volume = 1;
       
       setUtterance(newUtterance);
       synth.speak(newUtterance);
     }
   }, [question, synth]);
-
 
   const handleAnswerSubmit = async () =>{
     if (!answer.trim()) {
@@ -196,41 +183,35 @@ const startListening = () => {
       return;
     }
     try{
-        const response = await fetch("http://127.0.0.1:8000/answer-submit" ,{
-          method : "POST",
-          headers: {
-            "Content-Type": "application/json",  // Important to parse JSON
-          },
-          body: JSON.stringify({answer})
-        });
+      const response = await fetch(`${BACKEND_BASE}/answer-submit`, {
+        method : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ answer })
+      });
          
-        if(response.ok){
-          const data = await response.json();
-          console.log("Response from AI:", data);
-          if (data.response) {
-            setQuestion(data.response);
-          }
-  
-          // Clear answer box
-          setAnswer("");
+      if(response.ok){
+        const data = await response.json();
+        console.log("Response from AI:", data);
+        if (data.response) {
+          setQuestion(data.response);
         }
-        else {
-          console.error("Failed to submit answer:", response.statusText);
-        }
-        
-    }
-    catch(error){
+        setAnswer("");
+      } else {
+        console.error("Failed to submit answer:", response.statusText);
+      }
+    } catch(error){
       console.error("Error during submission:", error);
     }
-  }
+  };
 
   const handleStart = async () => {
     try {
-
       if (synth) {
         synth.cancel();
       }
-      const response = await fetch("http://127.0.0.1:8000/start-interview", {
+      const response = await fetch(`${BACKEND_BASE}/start-interview`, {
         method: "POST",
       });
   
@@ -255,7 +236,7 @@ const startListening = () => {
       backgroundColor: "black",
       height: "100vh",
       margin: 0,
-      display: 'flex', // add flex to align avatar and question side by side
+      display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'start',
@@ -282,7 +263,7 @@ const startListening = () => {
         {question ? <p>{question}</p> : <p>Click "Start" to begin your interview.</p>}
       </div>
 
-    /* Answer input section */
+      {/* Answer input section */}
       <div style={{
         marginLeft: '310px',
         backgroundColor: '#1e1e1e',
@@ -297,45 +278,42 @@ const startListening = () => {
       }}>
         <p style={{ marginBottom: '30px', fontWeight: 'bold', fontSize: '20px' }}>Your Answer:</p>
         <textarea
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Type your answer here..."
-        style={{
-          width: '90%',
-          height: '180px',
-          padding: '10px',
-          borderRadius: '5px',
-          border: '1px solid #ccc',
-          fontSize: '16px',
-          backgroundColor: '#2e2e2e',
-          color: 'white',
-          resize: 'none'
-        }}
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
+          placeholder="Type your answer here..."
+          style={{
+            width: '90%',
+            height: '180px',
+            padding: '10px',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+            fontSize: '16px',
+            backgroundColor: '#2e2e2e',
+            color: 'white',
+            resize: 'none'
+          }}
         />
-       <img
-  onClick={handleMicClick}
-  src={mic}
-  alt="Mic"
-  style={{
-    width: '40px',
-    height: '40px',
-    marginBottom: '10px',
-    cursor: 'pointer',
-    backgroundColor: isListening ? 'red' : 'transparent', // visual cue
-    borderRadius: '50%',
-    padding: '5px',
-    transform:"translateX(100px)",
-    boxShadow: isListening ? "0 0 10px red" : "none",
-    transition: "0.3s ease",
-    
-  }}
-/>
-
-
+        <img
+          onClick={handleMicClick}
+          src={mic}
+          alt="Mic"
+          style={{
+            width: '40px',
+            height: '40px',
+            marginBottom: '10px',
+            cursor: 'pointer',
+            backgroundColor: isListening ? 'red' : 'transparent',
+            borderRadius: '50%',
+            padding: '5px',
+            transform:"translateX(100px)",
+            boxShadow: isListening ? "0 0 10px red" : "none",
+            transition: "0.3s ease",
+          }}
+        />
       </div>
-        {/* Start button and mic */}
-      <div style={{ position: 'absolute',top:'650px' , bottom: '-10px', right: '730px', textAlign: 'center' }}>
-        
+
+      {/* Start button */}
+      <div style={{ position: 'absolute', top:'650px', bottom: '-10px', right: '730px', textAlign: 'center' }}>
         <button
           onClick={handleInterviewToggle}
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"

@@ -1,28 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// 👇 same pattern as Home.jsx
+const BACKEND_BASE =
+  process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+
 const Interview = () => {
   const [companyName, setCompanyName] = useState("");
   const [time, setTime] = useState("");
   const [selectedRound, setSelectedRound] = useState("");
-  const [resumeFile , setResumeFile] = useState(null);
+  const [resumeFile, setResumeFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState("");
 
   const navigate = useNavigate();
 
- 
-    
-
-    const handleFileUpload = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        setResumeFile(file);
-        setUploadStatus(`Selected: ${file.name}`);
-
-      }
-    };
-    
-
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setResumeFile(file);
+      setUploadStatus(`Selected: ${file.name}`);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!resumeFile || !companyName || !selectedRound || !time) {
@@ -31,23 +29,24 @@ const Interview = () => {
     }
 
     const formData = new FormData();
-    formData.append("resume",resumeFile)
+    formData.append("resume", resumeFile);
     formData.append("company", companyName);
-    formData.append("round",selectedRound);
-    formData.append("duration",time);
+    formData.append("round", selectedRound);
+    formData.append("duration", time);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/save-interview", {
+      const response = await fetch(`${BACKEND_BASE}/save-interview`, {
         method: "POST",
-      
-        body:formData,
+        body: formData,
       });
 
       const result = await response.json();
+
       if (response.ok) {
         localStorage.setItem("user_id", result.id);
         alert("Interview data saved!");
       } else {
+        console.error("Server error:", result);
         alert("Failed to save interview data.");
       }
     } catch (error) {
@@ -57,6 +56,8 @@ const Interview = () => {
   };
 
   const startInterview = () => {
+    // this only changes route on frontend; backend interview
+    // is already initialized by /save-interview + /start-interview on Home page
     navigate("/your_interview");
   };
 
@@ -160,34 +161,32 @@ const Interview = () => {
           />
         </ol>
 
-        
         {/* Submit Button */}
         <form
-  onSubmit={(e) => {
-    e.preventDefault();
-    handleSubmit();
-  }}
->
-  <button
-    type="submit"
-    style={{
-      position: "fixed",
-      bottom: "10px",
-      left: "40%",
-      transform: "translateX(-50%) translateY(200%)",
-      padding: "12px 25px",
-      backgroundColor: "#4CAF50",
-      color: "white",
-      border: "none",
-      borderRadius: "5px",
-      cursor: "pointer",
-    }}
-  >
-    Submit
-  </button>
-</form>
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+        >
+          <button
+            type="submit"
+            style={{
+              position: "fixed",
+              bottom: "10px",
+              left: "40%",
+              transform: "translateX(-50%) translateY(200%)",
+              padding: "12px 25px",
+              backgroundColor: "#4CAF50",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Submit
+          </button>
+        </form>
 
-        
         {/* Start Interview Button */}
         <button
           onClick={startInterview}

@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import Vapi from "@vapi-ai/web";
 import axios from "axios";
 
+// 👇 Reuse env-based backend URL
+const BACKEND_BASE =
+  process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+
 const VoiceInterview = () => {
   const [loading, setLoading] = useState(true);
   const [vapiInstance, setVapiInstance] = useState(null);
@@ -10,8 +14,8 @@ const VoiceInterview = () => {
     const fetchAndStartInterview = async () => {
       try {
         // Fetch user data from FastAPI
-        const res = await axios.get("http://localhost:8000/get-interview-context", {
-          params: { user_id: "abc123" }, // replace with logged-in user's ID
+        const res = await axios.get(`${BACKEND_BASE}/get-interview-context`, {
+          params: { user_id: "abc123" }, // TODO: replace with real logged-in user's ID
         });
 
         const { resume, companyName, selectedRound, time } = res.data;
@@ -54,6 +58,7 @@ Wait for answers, assess, and move forward naturally.
         setLoading(false);
       } catch (error) {
         console.error("Error starting interview:", error);
+        setLoading(false);
       }
     };
 
@@ -64,6 +69,7 @@ Wait for answers, assess, and move forward naturally.
         vapiInstance.stop();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
