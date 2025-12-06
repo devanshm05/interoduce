@@ -17,6 +17,12 @@ import google.generativeai as genai
 # ---------------------------
 # Load env
 # ---------------------------
+
+origins = [
+    "https://interoducen.netlify.app",
+    "http://localhost:3000",
+]
+
 load_dotenv()
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 
