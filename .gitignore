@@ -31,6 +31,9 @@ __pycache__/
 .venv/
 venv/
 .env
+*.env
+frontend/.env
+backend/.env
 # (backend/.env should NOT be committed)
 
 # ===========================
