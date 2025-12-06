@@ -1,0 +1,11 @@
+transformers
+python-multipart
+google-generativeai
+dotenv
+spacy
+spacy download en_core_web_sm
+pdfplumber
+fastapi   
+uvicorn   
+numpy
+pymongo
