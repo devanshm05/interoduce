@@ -7,16 +7,16 @@ import mic from '../images/mic.jpg';
 const BACKEND_BASE =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
-export default function Actual_Interview() {
+export default function ActualInterview() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState(""); 
   const [synth, setSynth] = useState(null);
-  const [utterance, setUtterance] = useState(null);
-  const [recognizing, setRecognizing] = useState(false);
+  const [_utterance, setUtterance] = useState(null);
+  const [_recognizing, setRecognizing] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [recognitionRef, setRecognitionRef] = useState(null);
   const [interviewStarted , setInterviewStarted] = useState(false);
-  const [interviewCompleted , setInterviewCompleted] = useState(false);
+  const [_interviewCompleted , setInterviewCompleted] = useState(false);
 
   const navigate = useNavigate();
 

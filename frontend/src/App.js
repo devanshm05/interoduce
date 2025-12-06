@@ -3,7 +3,7 @@ import Interview from './pages/Interview';
 import Thanks from './pages/Thanks';
 import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import React from 'react';
-import Actual_Interview from './pages/Actual_Interview';
+import ActualInterview from './pages/ActualInterview';
 import VoiceInterview from './components/VoiceInterview';
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
         <Route path='/' element={<Home/>}/>
         <Route path='/interview' element ={<Interview/>}/>
         <Route path='/thanks' element={<Thanks/>}/>
-        <Route path='/your_interview' element={<Actual_Interview/>}/>
+        <Route path='/your_interview' element={<ActualInterview/>}/>
         <Route path="/voice-interview" element={<VoiceInterview />} />
       </Routes>
      
